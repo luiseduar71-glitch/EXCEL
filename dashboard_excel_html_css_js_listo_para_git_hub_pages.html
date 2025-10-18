@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vendas & Serviços | Dashboard</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Iconos -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- SheetJS para leer Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    /* Estilos suaves similares al mockup */
+    :root{
+      --card: 255 255 255; /* white */
+      --muted: 243 244 246; /* gray-100 */
+      --ring: 229 231 235; /* gray-200 */
+    }
+    body{ background: radial-gradient(1200px 600px at -10% -10%, rgb(243 244 246), transparent),
+                       radial-gradient(800px 400px at 110% -20%, rgb(243 244 246), transparent),
+                       rgb(249 250 251); }
+    .glass{ background: rgba(255,255,255,0.75); backdrop-filter: blur(8px); }
+    .card{ background: rgb(var(--card)); border: 1px solid rgb(var(--ring)); }
+    .pill{ border: 1px solid rgb(var(--ring)); background: rgb(249 250 251); }
+    .shadow-soft{ box-shadow: 0 10px 25px rgba(0,0,0,.05); }
+  </style>
+</head>
+<body class="min-h-screen text-gray-800">
+  <!-- Sidebar -->
+  <div class="fixed left-4 top-1/2 -translate-y-1/2 flex flex-col gap-3">
+    <button class="w-10 h-10 rounded-2xl pill grid place-content-center"><i data-lucide="layout-dashboard"></i></button>
+    <button class="w-10 h-10 rounded-2xl pill grid place-content-center"><i data-lucide="line-chart"></i></button>
+    <button class="w-10 h-10 rounded-2xl pill grid place-content-center"><i data-lucide="map"></i></button>
+    <button class="w-10 h-10 rounded-2xl pill grid place-content-center"><i data-lucide="settings"></i></button>
+  </div>
+
+  <main class="max-w-7xl mx-auto p-4 md:p-6">
+    <!-- Header -->
+    <div class="glass rounded-2xl px-4 md:px-6 py-4 shadow-soft flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-100 grid place-content-center text-indigo-700"><i data-lucide="pie-chart"></i></div>
+        <h1 class="text-xl md:text-2xl font-semibold">Vendas & Serviços | <span class="text-gray-500 font-normal">Dashboard</span></h1>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <label class="pill rounded-xl px-3 py-2 text-sm flex items-center gap-2 cursor-pointer">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+          <span>Importar Excel</span>
+          <input id="file-input" type="file" accept=".xlsx,.xls" class="hidden" />
+        </label>
+        <input id="from" type="date" class="pill rounded-xl px-3 py-2 text-sm" />
+        <input id="to" type="date" class="pill rounded-xl px-3 py-2 text-sm" />
+        <button id="apply" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-4 py-2 text-sm shadow-soft">Aplicar</button>
+      </div>
+    </div>
+
+    <!-- Grid -->
+    <section class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 mt-6">
+      <!-- KPI + imagen producto -->
+      <div class="md:col-span-3 card rounded-2xl p-4 shadow-soft">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-emerald-100 grid place-content-center text-emerald-700"><i data-lucide="shopping-bag"></i></div>
+          <h3 class="font-semibold">Resumen</h3>
+        </div>
+        <div class="aspect-[4/3] rounded-xl bg-gray-50 mb-4 grid place-content-center text-gray-400 text-sm">Imagen de Producto</div>
+        <ul class="text-sm space-y-2">
+          <li class="flex justify-between"><span>Ventas</span><span id="kpi-sales" class="font-semibold">$425K</span></li>
+          <li class="flex justify-between"><span>Unidades</span><span id="kpi-units" class="font-semibold">850</span></li>
+          <li class="flex justify-between"><span>Categoría top</span><span id="kpi-cat" class="font-semibold">Electrónicos</span></li>
+          <li class="flex justify-between"><span>Tendencia</span><span id="kpi-trend" class="font-semibold text-emerald-600">+12%</span></li>
+        </ul>
+      </div>
+
+      <!-- Area mensual -->
+      <div class="md:col-span-6 card rounded-2xl p-4 shadow-soft">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="font-semibold">Total de vendas e serviços mês-a-mês</h3>
+        </div>
+        <canvas id="areaMonthly" height="120"></canvas>
+      </div>
+
+      <!-- Mapa placeholder + tooltip -->
+      <div class="md:col-span-3 card rounded-2xl p-4 shadow-soft relative overflow-hidden">
+        <h3 class="font-semibold mb-2">Vendas por Estado</h3>
+        <div class="h-[220px] rounded-xl bg-gray-50 grid place-content-center text-gray-400">Mapa (placeholder)</div>
+        <div class="absolute right-4 bottom-4 bg-white/90 border rounded-xl p-3 text-xs shadow-soft">
+          <div class="font-semibold mb-1">São Paulo</div>
+          <div class="space-y-1">
+            <div>Vendas: <span id="tt-sales">R$ 100.000</span></div>
+            <div>Serviços: <span id="tt-services">R$ 4.000</span></div>
+            <div class="font-semibold">Total: <span id="tt-total">R$ 104.000</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Serie líneas -->
+      <div class="md:col-span-6 card rounded-2xl p-4 shadow-soft">
+        <h3 class="font-semibold mb-2">Qtde Itens & Serviços</h3>
+        <canvas id="lineQty" height="110"></canvas>
+      </div>
+
+      <!-- Gauge total -->
+      <div class="md:col-span-3 card rounded-2xl p-4 shadow-soft">
+        <h3 class="font-semibold mb-2">Acumulado</h3>
+        <div class="relative w-full max-w-xs mx-auto">
+          <canvas id="gauge" width="280" height="280"></canvas>
+          <div class="absolute inset-0 grid place-content-center">
+            <div class="text-center">
+              <div id="gauge-total" class="text-2xl font-bold">569.3K</div>
+              <div class="text-gray-500 text-xs">TOTAL</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top productos -->
+      <div class="md:col-span-3 card rounded-2xl p-4 shadow-soft">
+        <h3 class="font-semibold mb-2">Top 5 Productos</h3>
+        <canvas id="barTop" height="180"></canvas>
+      </div>
+
+      <!-- Métodos de pago (chips) -->
+      <div class="md:col-span-12 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="card rounded-2xl p-4 flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 grid place-content-center"><i data-lucide="package"></i></div><div><div class="text-xs text-gray-500">PK</div><div class="text-xl font-semibold" id="chip-pk">22%</div></div></div>
+        <div class="card rounded-2xl p-4 flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 grid place-content-center"><i data-lucide="credit-card"></i></div><div><div class="text-xs text-gray-500">Cartão</div><div class="text-xl font-semibold" id="chip-card">53%</div></div></div>
+        <div class="card rounded-2xl p-4 flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 grid place-content-center"><i data-lucide="coins"></i></div><div><div class="text-xs text-gray-500">Dinheiro</div><div class="text-xl font-semibold" id="chip-cash">25%</div></div></div>
+        <div class="card rounded-2xl p-4 flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 grid place-content-center"><i data-lucide="more-horizontal"></i></div><div><div class="text-xs text-gray-500">Outros</div><div class="text-xl font-semibold" id="chip-others">0%</div></div></div>
+      </div>
+    </section>
+
+    <footer class="text-center text-xs text-gray-500 mt-8">Hecho con HTML + Tailwind + Chart.js + SheetJS • Listo para GitHub Pages</footer>
+  </main>
+
+  <script>
+    // ---------- Utilidades ----------
+    function fmtMoney(n){
+      if(Number.isNaN(n)) return '-';
+      return n.toLocaleString('en-US', { style:'currency', currency:'USD', maximumFractionDigits:0 });
+    }
+    function slug(s){ return String(s||'').trim().toLowerCase(); }
+
+    // ---------- Estado ----------
+    let rawRows = []; // filas originales del Excel
+
+    // ---------- Lectura de Excel ----------
+    document.getElementById('file-input').addEventListener('change', async (e)=>{
+      const file = e.target.files?.[0];
+      if(!file) return;
+      const data = await file.arrayBuffer();
+      const wb = XLSX.read(data, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(ws, {defval:null});
+      rawRows = json.map(r=>({
+        // Normalizamos cabeceras comunes
+        date: r.Fecha || r.fecha || r.Date || r.DATE || r.FechaOperacion || r.FechaVenta || null,
+        category: r.Categoria || r.Categoría || r.Category || r.SKU_Categoria || null,
+        region: r.Region || r.Región || r.Estado || r.State || r.Ubicacion || null,
+        type: r.Tipo || r.Type || r.Concepto || null, // Ventas / Servicios
+        product: r.Producto || r.Product || r.Item || r.Descripcion || null,
+        amount: Number(r.Monto ?? r.Amount ?? r.Total ?? r.Ventas ?? 0),
+        units: Number(r.Unidades ?? r.Qty ?? r.Cantidad ?? 0),
+        method: r.Metodo || r.Método || r.Payment || r.Forma || null,
+      }));
+      // Fallback si no hay fechas: generamos por meses
+      if(rawRows.length && !rawRows[0].date){
+        const today = new Date();
+        rawRows.forEach((r,i)=>{ r.date = new Date(today.getFullYear(), (i%12), 1); });
+      }
+      renderAll();
+    });
+
+    // ---------- Controles de fecha ----------
+    document.getElementById('apply').addEventListener('click', renderAll);
+
+    function filterByDate(rows){
+      const from = document.getElementById('from').value ? new Date(document.getElementById('from').value) : null;
+      const to   = document.getElementById('to').value ? new Date(document.getElementById('to').value) : null;
+      return rows.filter(r=>{
+        const d = new Date(r.date);
+        if(from && d < from) return false;
+        if(to && d > to) return false;
+        return true;
+      });
+    }
+
+    // ---------- Gráficos ----------
+    let areaChart, lineChart, barChart, gaugeChart;
+
+    function ensureDestroy(chart){ if(chart){ chart.destroy(); } }
+
+    function renderAll(){
+      const rows = filterByDate(rawRows);
+
+      // KPIs
+      const total = rows.reduce((a,b)=>a+(b.amount||0),0);
+      const units = rows.reduce((a,b)=>a+(b.units||0),0);
+      const catMap = new Map();
+      rows.forEach(r=>{ if(!r.category) return; catMap.set(r.category, (catMap.get(r.category)||0) + (r.amount||0)); });
+      const topCat = [...catMap.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0] || '-';
+      document.getElementById('kpi-sales').textContent = fmtMoney(total);
+      document.getElementById('kpi-units').textContent = units.toLocaleString();
+      document.getElementById('kpi-cat').textContent = topCat;
+      document.getElementById('gauge-total').textContent = (total/1000).toFixed(1)+'K';
+
+      // Series por mes
+      const byMonth = {};
+      rows.forEach(r=>{
+        const d = new Date(r.date);
+        if(isNaN(d)) return;
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        byMonth[key] = (byMonth[key]||0) + (r.amount||0);
+      });
+      const labels = Object.keys(byMonth).sort();
+      const values = labels.map(k=>byMonth[k]);
+
+      ensureDestroy(areaChart);
+      areaChart = new Chart(document.getElementById('areaMonthly'),{
+        type:'line',
+        data:{ labels, datasets:[{ label:'Total', data:values, fill:true, tension:.35 }]},
+        options:{ plugins:{ legend:{ display:false } }, scales:{ x:{ grid:{ display:false } }, y:{ beginAtZero:true } } }
+      });
+
+      // Línea cantidad (unidades)
+      const byMonthUnits = {};
+      rows.forEach(r=>{
+        const d = new Date(r.date); if(isNaN(d)) return; const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        byMonthUnits[key] = (byMonthUnits[key]||0) + (r.units||0);
+      });
+      const labels2 = Object.keys(byMonthUnits).sort();
+      const values2 = labels2.map(k=>byMonthUnits[k]);
+      ensureDestroy(lineChart);
+      lineChart = new Chart(document.getElementById('lineQty'),{
+        type:'line',
+        data:{ labels:labels2, datasets:[
+          { label:'Itens', data:values2, tension:.35 },
+        ]},
+        options:{ plugins:{ legend:{ display:false } }, scales:{ x:{ grid:{ display:false } }, y:{ beginAtZero:true } } }
+      });
+
+      // Top 5 productos
+      const prod = new Map();
+      rows.forEach(r=>{ if(!r.product) return; prod.set(r.product,(prod.get(r.product)||0)+(r.amount||0)); });
+      const top = [...prod.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
+      ensureDestroy(barChart);
+      barChart = new Chart(document.getElementById('barTop'),{
+        type:'bar',
+        data:{ labels: top.map(([n])=>n), datasets:[{ label:'Ventas', data: top.map(([,v])=>v) }]},
+        options:{ indexAxis:'y', plugins:{ legend:{ display:false } }, scales:{ x:{ beginAtZero:true } } }
+      });
+
+      // Gauge (doughnut recortado)
+      ensureDestroy(gaugeChart);
+      const pct = Math.min(1, total / (rows.length ? rows.reduce((a,b)=>a+Math.abs(b.amount||0),0) : 1));
+      gaugeChart = new Chart(document.getElementById('gauge'),{
+        type:'doughnut',
+        data:{ labels:['Progreso','Restante'], datasets:[{ data:[pct, 1-pct] }]},
+        options:{ cutout:'75%', rotation:-90, circumference:180, plugins:{ legend:{ display:false } } }
+      });
+
+      // Chips de métodos de pago
+      const byMethod = new Map();
+      rows.forEach(r=>{ if(!r.method) return; byMethod.set(r.method, (byMethod.get(r.method)||0)+(r.amount||0)); });
+      const totalMethod = [...byMethod.values()].reduce((a,b)=>a+b,0) || 1;
+      const getPct = (key)=> Math.round(((byMethod.get(key)||0)/totalMethod)*100);
+      document.getElementById('chip-pk').textContent = getPct('PK')+ '%';
+      document.getElementById('chip-card').textContent = getPct('Tarjeta')+ '%';
+      document.getElementById('chip-cash').textContent = getPct('Efectivo')+ '%';
+      document.getElementById('chip-others').textContent = Math.max(0, 100 - (getPct('PK')+getPct('Tarjeta')+getPct('Efectivo'))) + '%';
+    }
+
+    // Semillas de demo por si no hay Excel cargado
+    (function seed(){
+      const now = new Date();
+      for(let m=0;m<12;m++){
+        for(let i=0;i<12;i++){
+          rawRows.push({
+            date: new Date(now.getFullYear(), m, 1+Math.floor(Math.random()*27)),
+            category: ['Electrónicos','Hogar','Bebidas','Abarrotes'][Math.floor(Math.random()*4)],
+            region: ['São Paulo','Rio','Minas','Bahia'][Math.floor(Math.random()*4)],
+            type: Math.random()>.2 ? 'Ventas' : 'Servicios',
+            product: ['Xiaomi Redmi Note 12','Notebook i5','Mouse G14','Samsung Galaxy A54','iPhone 13 128GB'][Math.floor(Math.random()*5)],
+            amount: Math.floor(100 + Math.random()*1000) * (Math.random()>.1?1: -1),
+            units: Math.floor(1 + Math.random()*80),
+            method: ['Tarjeta','Efectivo','PK','Otros'][Math.floor(Math.random()*4)]
+          });
+        }
+      }
+      renderAll();
+      setTimeout(()=>lucide.createIcons(),0);
+    })();
+  </script>
+</body>
+</html>
