@@ -42,7 +42,7 @@
     <div class="glass rounded-2xl px-4 md:px-6 py-4 shadow-soft flex flex-col md:flex-row md:items-center md:justify-between gap-3">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-indigo-100 grid place-content-center text-indigo-700"><i data-lucide="pie-chart"></i></div>
-        <h1 class="text-xl md:text-2xl font-semibold">Vendas & Serviços | <span class="text-gray-500 font-normal">Dashboard</span></h1>
+        <h1 class="text-xl md:text-2xl font-semibold">Apuestas \| <span class="text-gray-500 font-normal">Dashboard</span></h1>
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <label class="pill rounded-xl px-3 py-2 text-sm flex items-center gap-2 cursor-pointer">
@@ -62,31 +62,30 @@
       <div class="md:col-span-3 card rounded-2xl p-4 shadow-soft">
         <div class="flex items-center gap-3 mb-4">
           <div class="w-10 h-10 rounded-xl bg-emerald-100 grid place-content-center text-emerald-700"><i data-lucide="shopping-bag"></i></div>
-          <h3 class="font-semibold">Resumen</h3>
+          <h3 class="font-semibold">Resumen de apuestas</h3>
         </div>
         <div class="aspect-[4/3] rounded-xl bg-gray-50 mb-4 grid place-content-center text-gray-400 text-sm">Imagen de Producto</div>
         <ul class="text-sm space-y-2">
-          <li class="flex justify-between"><span>Ventas</span><span id="kpi-sales" class="font-semibold">$425K</span></li>
-          <li class="flex justify-between"><span>Unidades</span><span id="kpi-units" class="font-semibold">850</span></li>
-          <li class="flex justify-between"><span>Categoría top</span><span id="kpi-cat" class="font-semibold">Electrónicos</span></li>
-          <li class="flex justify-between"><span>Tendencia</span><span id="kpi-trend" class="font-semibold text-emerald-600">+12%</span></li>
+          <li class="flex justify-between"><span>Victorias</span><span id="kpi-wins" class="font-semibold">0</span></li>
+          <li class="flex justify-between"><span>Derrotas</span><span id="kpi-losses" class="font-semibold">0</span></li>
+          <li class="flex justify-between"><span>Empates</span><span id="kpi-draws" class="font-semibold">0</span></li>
+          <li class="flex justify-between"><span>Saldo</span><span id="kpi-balance" class="font-semibold text-emerald-600">$0</span></li>
         </ul>
       </div>
 
       <!-- Area mensual -->
       <div class="md:col-span-6 card rounded-2xl p-4 shadow-soft">
         <div class="flex items-center justify-between mb-2">
-          <h3 class="font-semibold">Total de vendas e serviços mês-a-mês</h3>
+          <h3 class="font-semibold">Gráfico de apuestas (saldo acumulado)</h3>
         </div>
         <canvas id="areaMonthly" height="120"></canvas>
       </div>
 
       <!-- Mapa placeholder + tooltip -->
       <div class="md:col-span-3 card rounded-2xl p-4 shadow-soft relative overflow-hidden">
-        <h3 class="font-semibold mb-2">Vendas por Estado</h3>
+        <h3 class="font-semibold mb-2">Victorias por rival</h3>
         <div class="h-[220px] rounded-xl bg-gray-50 grid place-content-center text-gray-400">Mapa (placeholder)</div>
-        <div class="absolute right-4 bottom-4 bg-white/90 border rounded-xl p-3 text-xs shadow-soft">
-          <div class="font-semibold mb-1">São Paulo</div>
+        <div class="absolute right-4 bottom-4 bg-white/90 border rounded-xl p-3 text-xs shadow-soft"><div class="font-semibold mb-1" id="tt-rival">Rival</div><div class="space-y-1"><div>Tasa de victoria: <span id="tt-winrate">0%</span></div><div>Partidos: <span id="tt-matches">0</span></div><div class="font-semibold">Ganancia neta: <span id="tt-profit">$0</span></div></div></div>
           <div class="space-y-1">
             <div>Vendas: <span id="tt-sales">R$ 100.000</span></div>
             <div>Serviços: <span id="tt-services">R$ 4.000</span></div>
@@ -103,7 +102,7 @@
 
       <!-- Gauge total -->
       <div class="md:col-span-3 card rounded-2xl p-4 shadow-soft">
-        <h3 class="font-semibold mb-2">Acumulado</h3>
+        <h3 class="font-semibold mb-2">Saldo de apuestas</h3>
         <div class="relative w-full max-w-xs mx-auto">
           <canvas id="gauge" width="280" height="280"></canvas>
           <div class="absolute inset-0 grid place-content-center">
@@ -117,16 +116,16 @@
 
       <!-- Top productos -->
       <div class="md:col-span-3 card rounded-2xl p-4 shadow-soft">
-        <h3 class="font-semibold mb-2">Top 5 Productos</h3>
+        <h3 class="font-semibold mb-2">Rivales más rentables</h3>
         <canvas id="barTop" height="180"></canvas>
       </div>
 
       <!-- Métodos de pago (chips) -->
       <div class="md:col-span-12 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="card rounded-2xl p-4 flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 grid place-content-center"><i data-lucide="package"></i></div><div><div class="text-xs text-gray-500">PK</div><div class="text-xl font-semibold" id="chip-pk">22%</div></div></div>
-        <div class="card rounded-2xl p-4 flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 grid place-content-center"><i data-lucide="credit-card"></i></div><div><div class="text-xs text-gray-500">Cartão</div><div class="text-xl font-semibold" id="chip-card">53%</div></div></div>
-        <div class="card rounded-2xl p-4 flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 grid place-content-center"><i data-lucide="coins"></i></div><div><div class="text-xs text-gray-500">Dinheiro</div><div class="text-xl font-semibold" id="chip-cash">25%</div></div></div>
-        <div class="card rounded-2xl p-4 flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 grid place-content-center"><i data-lucide="more-horizontal"></i></div><div><div class="text-xs text-gray-500">Outros</div><div class="text-xl font-semibold" id="chip-others">0%</div></div></div>
+        <div class="card rounded-2xl p-4 flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 grid place-content-center"><i data-lucide="check"></i></div><div><div class="text-xs text-gray-500">Win %</div><div class="text-xl font-semibold" id="chip-win">0%</div></div></div></div></div>
+        <div class="card rounded-2xl p-4 flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 grid place-content-center"><i data-lucide="x"></i></div><div><div class="text-xs text-gray-500">Loss %</div><div class="text-xl font-semibold" id="chip-loss">0%</div></div></div>
+        <div class="card rounded-2xl p-4 flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 grid place-content-center"><i data-lucide="minus"></i></div><div><div class="text-xs text-gray-500">Draw %</div><div class="text-xl font-semibold" id="chip-draw">0%</div></div></div>
+        <div class="card rounded-2xl p-4 flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 grid place-content-center"><i data-lucide="dollar-sign"></i></div><div><div class="text-xs text-gray-500">Saldo</div><div class="text-xl font-semibold" id="chip-balance">$0</div></div></div>
       </div>
     </section>
 
@@ -193,25 +192,62 @@
     function renderAll(){
       const rows = filterByDate(rawRows);
 
-      // KPIs
-      const total = rows.reduce((a,b)=>a+(b.amount||0),0);
-      const units = rows.reduce((a,b)=>a+(b.units||0),0);
-      const catMap = new Map();
-      rows.forEach(r=>{ if(!r.category) return; catMap.set(r.category, (catMap.get(r.category)||0) + (r.amount||0)); });
-      const topCat = [...catMap.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0] || '-';
-      document.getElementById('kpi-sales').textContent = fmtMoney(total);
-      document.getElementById('kpi-units').textContent = units.toLocaleString();
-      document.getElementById('kpi-cat').textContent = topCat;
-      document.getElementById('gauge-total').textContent = (total/1000).toFixed(1)+'K';
+      // ----- Transformación a modelo de apuestas -----
+      const bets = rows.map(r=>({
+        rival: r.rival || r.Rival || r.CONTRA || r.Contra || r.Oponente || r.DNTRINCANTI || r.DNTRINCANT || r['DNTRINCANTI'] || r['CONTRA'] || r['Contra'] || r['Oponente'] || 'Desconocido',
+        outcome: (r.outcome || r.ETERMINADA || r.DETERMINADA || r.Estado || r.ResultadoEstado || r['ETERMINADA'] || r['DETERMINADA'] || r['estado'] || '').toString().toLowerCase(),
+        score: r.RESULTADO || r.Resultado || '',
+        stake: Number(r.apuesta ?? r.Apuesta ?? r.Stake ?? r.Monto ?? 0)
+      }));
 
-      // Series por mes
-      const byMonth = {};
-      rows.forEach(r=>{
-        const d = new Date(r.date);
-        if(isNaN(d)) return;
-        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-        byMonth[key] = (byMonth[key]||0) + (r.amount||0);
-      });
+      // Reglas: gana +stake, derrota -|stake|, empate -|stake|
+      const signed = bets.map(b=>({ ...b, value: b.outcome.includes('gano') ? Math.abs(b.stake||0) : -Math.abs(b.stake||0) }));
+
+      // KPIs
+      const wins   = signed.filter(b=>b.outcome.includes('gano')).length;
+      const losses = signed.filter(b=>b.outcome.includes('derrota')).length;
+      const draws  = signed.filter(b=>b.outcome.includes('empate')).length;
+      const balance= signed.reduce((a,b)=>a+(b.value||0),0);
+      const total  = signed.length || 1;
+      document.getElementById('kpi-wins').textContent = wins;
+      document.getElementById('kpi-losses').textContent = losses;
+      document.getElementById('kpi-draws').textContent = draws;
+      document.getElementById('kpi-balance').textContent = fmtMoney(balance);
+
+      document.getElementById('chip-win').textContent = Math.round((wins/total)*100) + '%';
+      document.getElementById('chip-loss').textContent = Math.round((losses/total)*100) + '%';
+      document.getElementById('chip-draw').textContent = Math.round((draws/total)*100) + '%';
+      document.getElementById('chip-balance').textContent = fmtMoney(balance);
+
+      // Gráfico acumulado
+      const cumLabels = signed.map((_,i)=>`J${i+1}`);
+      let acc = 0; const cumValues = signed.map(b=>{ acc += (b.value||0); return acc; });
+      ensureDestroy(areaChart);
+      areaChart = new Chart(document.getElementById('areaMonthly'),{ type:'line', data:{ labels: cumLabels, datasets:[{ label:'Saldo', data: cumValues, fill:true, tension:.35 }]}, options:{ plugins:{ legend:{ display:false } }, scales:{ x:{ grid:{ display:false } }, y:{ beginAtZero:true } } } });
+
+      ensureDestroy(lineChart);
+      lineChart = new Chart(document.getElementById('lineQty'),{ type:'line', data:{ labels: cumLabels, datasets:[{ label:'Saldo', data:cumValues, tension:.35 }]}, options:{ plugins:{ legend:{ display:false } }, scales:{ x:{ grid:{ display:false } }, y:{ beginAtZero:true } } } });
+
+      // Rivales más rentables
+      const byRivalProfit = new Map();
+      signed.forEach(b=>{ const k=b.rival; byRivalProfit.set(k,(byRivalProfit.get(k)||0)+(b.value||0)); });
+      const top = [...byRivalProfit.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
+      ensureDestroy(barChart);
+      barChart = new Chart(document.getElementById('barTop'),{ type:'bar', data:{ labels: top.map(([n])=>n), datasets:[{ label:'Ganancia neta', data: top.map(([,v])=>v) }]}, options:{ indexAxis:'y', plugins:{ legend:{ display:false } }, scales:{ x:{ beginAtZero:true } } } });
+
+      // Gauge: saldo
+      ensureDestroy(gaugeChart);
+      const goal = Math.max(1, Math.abs(balance) * 2);
+      const pct = Math.min(1, Math.max(0, (balance + goal/2) / goal));
+      gaugeChart = new Chart(document.getElementById('gauge'),{ type:'doughnut', data:{ labels:['Progreso','Restante'], datasets:[{ data:[pct, 1-pct] }]}, options:{ cutout:'75%', rotation:-90, circumference:180, plugins:{ legend:{ display:false } } } });
+      document.getElementById('gauge-total').textContent = fmtMoney(balance);
+
+      // Tooltip rival con winrate
+      const byRival = new Map();
+      signed.forEach(b=>{ const e = byRival.get(b.rival) || {win:0,loss:0,draw:0,profit:0,count:0}; if(b.outcome.includes('gano')) e.win++; else if(b.outcome.includes('derrota')) e.loss++; else if(b.outcome.includes('empate')) e.draw++; e.profit += (b.value||0); e.count++; byRival.set(b.rival, e); });
+      const best = [...byRival.entries()].sort((a,b)=>((b[1].win/(b[1].count||1)) - (a[1].win/(a[1].count||1))))[0];
+      if(best){ const [name,stats] = best; document.getElementById('tt-rival').textContent = name; document.getElementById('tt-winrate').textContent = Math.round((stats.win/(stats.count||1))*100)+'%'; document.getElementById('tt-matches').textContent = stats.count; document.getElementById('tt-profit').textContent = fmtMoney(stats.profit); }
+    });
       const labels = Object.keys(byMonth).sort();
       const values = labels.map(k=>byMonth[k]);
 
